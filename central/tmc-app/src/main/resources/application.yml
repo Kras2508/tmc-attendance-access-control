@@ -2,6 +2,9 @@
 spring:
   application:
     name: tmc-app
+  config:
+    # Reads ".env" (copied from .env.example) when started with ./mvnw from the repo root or from central/tmc-app.
+    import: optional:file:.env[.properties],optional:file:../../.env[.properties]
   profiles:
     default: dev
   datasource:

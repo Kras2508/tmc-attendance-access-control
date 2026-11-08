@@ -227,21 +227,69 @@ There are no foreign keys between schemas; references across modules are logical
 
 ## 7. Build and run
 
-Requirements: **JDK 21** (for example `sudo dnf install java-21-openjdk-devel`) and Docker. Maven is not required (use `./mvnw`).
+### 7.1 Prerequisites
+
+| Tool | Needed for | Install (example) |
+|---|---|---|
+| **Docker** (Docker Desktop or Docker Engine + Compose v2) | database, running the whole system | <https://docs.docker.com/get-docker/> — Docker Desktop must be **running** |
+| **JDK 21** | building/running with `./mvnw` (option B) | Fedora `sudo dnf install java-21-openjdk-devel` · Ubuntu `sudo apt install openjdk-21-jdk` · Windows/macOS: [Temurin 21](https://adoptium.net/) |
+| Git | cloning | — |
+
+Maven does **not** need to be installed: `./mvnw` (Windows: `mvnw.cmd`) downloads the right version.
+Check the JDK with `javac -version` (must print 21.x; a JRE alone is not enough).
+
+### 7.2 First run
 
 ```bash
-./mvnw verify                          # compile all modules + run architecture tests
-docker compose up -d postgres          # database only
-./mvnw -pl central/tmc-app -am spring-boot:run
-docker compose up --build              # postgres + tmc-app in containers
-docker compose --profile kiosk up      # + one kiosk
+git clone <repo-url> && cd <repo>
+cp .env.example .env            # Windows: copy .env.example .env  — then edit values if needed
 ```
 
-Without a local JDK, build inside the same image the Dockerfile uses:
+**Option A: everything in Docker (no JDK needed)**
+
+```bash
+docker compose up --build -d                  # postgres + tmc-app
+docker compose logs -f tmc-app                # wait for "Started TmcApplication"
+curl http://localhost:8080/actuator/health    # → {"status":"UP"}
+docker compose --profile kiosk up --build kiosk   # optional: one gate kiosk
+docker compose down                           # stop (add -v to also wipe the database)
+```
+
+**Option B: run the app from the IDE / `./mvnw` (for development)**
+
+```bash
+docker compose up -d postgres                 # database only
+./mvnw verify                                 # compile all modules + run the architecture tests
+./mvnw -pl central/tmc-app -am spring-boot:run
+./mvnw -pl kiosk/kiosk-app -am spring-boot:run   # optional
+```
+
+The app reads `.env` automatically (`spring.config.import` in `application.yml`). You can also run
+`TmcApplication` / `KioskApplication` directly from VS Code or IntelliJ.
+
+**Build check without a local JDK** (same image as the Dockerfile):
 
 ```bash
 docker run --rm -v tmc-m2:/root/.m2 -v "$PWD":/src -w /src maven:3.9.9-eclipse-temurin-21 mvn -B verify
 ```
+
+### 7.3 What you should see (skeleton state)
+
+* Flyway applies `V100` … `V600` and creates one schema per module: `audit`, `access_management`,
+  `identity_qr`, `gate_access`, `attendance`, `reporting_export`.
+* `GET /actuator/health` returns `UP`. Other endpoints return 401: Spring Security is active and
+  `SecurityConfig` is still to be implemented (it prints a generated dev password at startup).
+* `kiosk-app` starts and exits right away (`Exited (0)`), because no scheduler or scanner listener is implemented yet.
+
+### 7.4 Common problems
+
+| Symptom | Fix |
+|---|---|
+| `failed to connect to the docker API` | Start Docker Desktop. |
+| `port is already allocated` (5432 / 8080) | Change `POSTGRES_PORT` / `TMC_APP_PORT` in `.env`. |
+| `release version 21 not supported` | You only have a JRE or an older JDK: install JDK 21 and point `JAVA_HOME` to it. |
+| `./mvnw: Permission denied` | `chmod +x mvnw` |
+| Architecture test fails | Read the message: it names the class and the rule (section 5) that was broken. |
 
 ---
 

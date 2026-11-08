@@ -2,19 +2,20 @@
 #   postgres  ~ database server (primary). Synchronous standby (ADR-08) is not reproduced locally.
 #   tmc-app   ~ application server (one instance locally; two in production behind load balancers).
 #   kiosk     ~ one gate kiosk (profile "kiosk").
+# Values come from ".env" (copy .env.example); defaults below are used if .env is missing.
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: tmc
-      POSTGRES_USER: tmc
-      POSTGRES_PASSWORD: tmc
+      POSTGRES_DB: ${POSTGRES_DB:-tmc}
+      POSTGRES_USER: ${POSTGRES_USER:-tmc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tmc}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tmc -d tmc"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tmc} -d ${POSTGRES_DB:-tmc}"]
       interval: 5s
       retries: 10
 
@@ -23,11 +24,14 @@ services:
       context: .
       dockerfile: docker/tmc-app.Dockerfile
     environment:
-      TMC_DB_URL: jdbc:postgresql://postgres:5432/tmc
-      TMC_DB_USER: tmc
-      TMC_DB_PASSWORD: tmc
+      TMC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-tmc}
+      TMC_DB_USER: ${POSTGRES_USER:-tmc}
+      TMC_DB_PASSWORD: ${POSTGRES_PASSWORD:-tmc}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      TMC_TURNSTILE_URL: ${TMC_TURNSTILE_URL:-http://localhost:9001}
+      TMC_HRPAYROLL_URL: ${TMC_HRPAYROLL_URL:-http://localhost:9002}
     ports:
-      - "8080:8080"
+      - "${TMC_APP_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,6 +42,8 @@ services:
       context: .
       dockerfile: docker/kiosk.Dockerfile
     environment:
+      KIOSK_ID: ${KIOSK_ID:-BD-GATE-01}
+      KIOSK_GATE_ID: ${KIOSK_GATE_ID:-BD-G01}
       KIOSK_CENTRAL_URL: http://tmc-app:8080
     volumes:
       - kioskdata:/app/data
