@@ -1,0 +1,3 @@
+-- Owner: Reporting & Export module. Schema: reporting_export
+-- TODO(M2): export_batch (batch_id = idempotency key, period, status, attempts, delivered_at)
+-- TODO(M2): export_lock (single-instance export, Table 15)

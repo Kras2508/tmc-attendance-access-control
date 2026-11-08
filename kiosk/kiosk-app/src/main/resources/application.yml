@@ -1,0 +1,23 @@
+# kiosk-app — gate kiosk (edge quantum, ADR-03). One instance per gate lane.
+spring:
+  application:
+    name: kiosk-app
+  main:
+    web-application-type: none
+  datasource:
+    url: jdbc:sqlite:${KIOSK_DATA_DIR:./data}/kiosk.db   # local store: outbox + cache (Table 27)
+    driver-class-name: org.sqlite.JDBC
+
+kiosk:
+  id: ${KIOSK_ID:BD-GATE-01}
+  gate-station-id: ${KIOSK_GATE_ID:BD-G01}
+  central:
+    base-url: ${KIOSK_CENTRAL_URL:https://localhost:8443}
+    timeout: 1s                   # switch to Offline after 1 s (ADR-03)
+  turnstile-local:
+    base-url: ${KIOSK_TURNSTILE_URL:http://localhost:9001}
+  offline:
+    probe-interval: 10s           # circuit breaker probe (E4)
+  sync:
+    batch-size: 50                # E3
+  heartbeat-interval: 30s         # E6

@@ -1,0 +1,3 @@
+-- Owner: Audit module. Schema: audit (Table 27)
+-- TODO(M2): CREATE TABLE audit.audit_log (actor, action, target, result, reject_reason, occurred_at, ...)
+-- TODO(M2): trigger that rejects every UPDATE and DELETE on audit.audit_log (append-only, ADR-06)

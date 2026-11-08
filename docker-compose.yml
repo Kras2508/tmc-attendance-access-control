@@ -1,0 +1,49 @@
+# Local development environment. Mirrors the physical architecture (§3.4) at small scale:
+#   postgres  ~ database server (primary). Synchronous standby (ADR-08) is not reproduced locally.
+#   tmc-app   ~ application server (one instance locally; two in production behind load balancers).
+#   kiosk     ~ one gate kiosk (profile "kiosk").
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tmc
+      POSTGRES_USER: tmc
+      POSTGRES_PASSWORD: tmc
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tmc -d tmc"]
+      interval: 5s
+      retries: 10
+
+  tmc-app:
+    build:
+      context: .
+      dockerfile: docker/tmc-app.Dockerfile
+    environment:
+      TMC_DB_URL: jdbc:postgresql://postgres:5432/tmc
+      TMC_DB_USER: tmc
+      TMC_DB_PASSWORD: tmc
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  kiosk:
+    profiles: ["kiosk"]
+    build:
+      context: .
+      dockerfile: docker/kiosk.Dockerfile
+    environment:
+      KIOSK_CENTRAL_URL: http://tmc-app:8080
+    volumes:
+      - kioskdata:/app/data
+    depends_on:
+      - tmc-app
+
+volumes:
+  pgdata:
+  kioskdata:

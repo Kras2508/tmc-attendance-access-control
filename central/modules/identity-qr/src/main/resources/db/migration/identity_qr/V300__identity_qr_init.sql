@@ -1,0 +1,5 @@
+-- Owner: Identity & QR module. Schema: identity_qr (Table 27)
+-- TODO(M2): employee
+-- TODO(M2): device_credential  + partial unique index: one ACTIVE credential per device
+-- TODO(M2): signing_key        + partial unique index: one ACTIVE key (status NEXT | ACTIVE | RETIRED)
+-- TODO(M2): used_nonce         (PK nonce; rows older than 60 s removed by a scheduled job)

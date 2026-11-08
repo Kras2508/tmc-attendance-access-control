@@ -1,0 +1,51 @@
+# tmc-app — central application (one deployable unit, ADR-01). Stateless: both instances share this config (ADR-08).
+spring:
+  application:
+    name: tmc-app
+  profiles:
+    default: dev
+  datasource:
+    url: ${TMC_DB_URL:jdbc:postgresql://localhost:5432/tmc}
+    username: ${TMC_DB_USER:tmc}
+    password: ${TMC_DB_PASSWORD:tmc}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate          # schema is owned by Flyway migrations, never by Hibernate
+  flyway:
+    # One schema per module (§3.3.2 "one schema per module", Table 27). Each module ships its own migrations.
+    default-schema: public
+    schemas: public,audit,access_management,identity_qr,gate_access,attendance,reporting_export
+    create-schemas: true
+    locations:
+      - classpath:db/migration/audit              # V1xx
+      - classpath:db/migration/access_management  # V2xx
+      - classpath:db/migration/identity_qr        # V3xx
+      - classpath:db/migration/gate_access        # V4xx
+      - classpath:db/migration/attendance         # V5xx
+      - classpath:db/migration/reporting_export   # V6xx
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info      # health checks for load balancer + monitoring server (§3.4.3)
+
+# Module-local configuration (FR-5.4: each module owns its configuration keys).
+tmc:
+  identity-qr:
+    token-window: 30s             # V4 / NFR-7
+    nonce-retention: 60s          # V5
+    credential-validity: 24h      # §6.2.4
+  gate-access:
+    snapshot-interval: 5m         # kiosk cache refresh (§6.2.4 Keys and revocation)
+    sync-batch-size: 50           # E3
+  reporting-export:
+    export-cron: "0 30 0 1 * *"   # 00:30 on day 1 (Flow B, ADR-05)
+    deadline: "12:00"             # IC-1
+  adapter:
+    turnstile:
+      base-url: ${TMC_TURNSTILE_URL:http://localhost:9001}
+      timeout: 500ms              # latency budget, Table 18
+    hr-payroll:
+      base-url: ${TMC_HRPAYROLL_URL:http://localhost:9002}

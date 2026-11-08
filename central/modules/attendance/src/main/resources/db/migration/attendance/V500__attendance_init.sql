@@ -1,0 +1,3 @@
+-- Owner: Attendance module. Schema: attendance (Table 27)
+-- TODO(M2): attendance_event (PK event_id for idempotency E1; mode, kiosk_time, received_at,
+--           gate_station_id and factory_id as LOGICAL references — no cross-schema FK; gate_outcome, review_flag)

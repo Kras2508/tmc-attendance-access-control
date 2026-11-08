@@ -1,0 +1,3 @@
+-- Owner: Gate Access module. Schema: gate_access (Table 27)
+-- TODO(M2): gate_station (factory, direction)
+-- TODO(M2): kiosk (identity, last_heartbeat, last_synced_event, queue_size, cache_version)

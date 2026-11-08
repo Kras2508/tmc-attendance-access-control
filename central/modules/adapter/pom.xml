@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Integration module. Depends on the modules whose PORTS it realizes (realization, not use):
+  Gate Access (TurnstilePort, SecurityAlertPort), Identity & QR (QrDeliveryPort), Reporting & Export (PayrollExportPort).
+  ArchUnit restricts it to their ..persistence.port.. packages only.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>vn.tmc</groupId>
+        <artifactId>tmc-platform</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>adapter</artifactId>
+    <name>Module: Adapter</name>
+
+    <dependencies>
+        <dependency><groupId>vn.tmc</groupId><artifactId>shared-kernel</artifactId></dependency>
+        <dependency><groupId>vn.tmc</groupId><artifactId>gate-access</artifactId></dependency>
+        <dependency><groupId>vn.tmc</groupId><artifactId>identity-qr</artifactId></dependency>
+        <dependency><groupId>vn.tmc</groupId><artifactId>reporting-export</artifactId></dependency>
+        <dependency><groupId>org.springframework</groupId><artifactId>spring-web</artifactId></dependency>
+        <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-mail</artifactId></dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,32 @@
+# Course documents (assignment PDF, report drafts) — kept local, not pushed
+docs/
+
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime data / logs
+*.log
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Local env / secrets
+.env
+*.pem
+*.p12
+*.jks

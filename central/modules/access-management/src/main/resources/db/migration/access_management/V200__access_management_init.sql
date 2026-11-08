@@ -1,0 +1,2 @@
+-- Owner: Access Management module. Schema: access_management
+-- TODO(M2): user_account (users and kiosk devices), role, permission, role_permission, role_assignment (+ scope)

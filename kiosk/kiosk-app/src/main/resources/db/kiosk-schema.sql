@@ -1,0 +1,4 @@
+-- Kiosk local store (SQLite, PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL) — Table 27
+-- TODO(M2): outbox_event (PK event_id)            -- E2 durable outbox
+-- TODO(M2): cached_signing_key, revoked_credential, cache_meta   -- offline validation cache
+-- TODO(M2): seen_nonce                              -- V5 offline
