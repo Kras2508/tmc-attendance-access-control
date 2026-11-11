@@ -63,7 +63,8 @@ public class AttendanceEventEntity implements Persistable<UUID> {
 
     public static AttendanceEventEntity newEvent(UUID eventId, String employeeId, String gateStationId,
                                                  String factoryId, Direction direction, EventMode mode,
-                                                 Instant occurredAt, Instant receivedAt, GateOutcome gateOutcome) {
+                                                 Instant occurredAt, Instant receivedAt, GateOutcome gateOutcome,
+                                                 boolean reviewFlag) {
         AttendanceEventEntity event = new AttendanceEventEntity();
         event.eventId = eventId;
         event.employeeId = employeeId;
@@ -74,7 +75,7 @@ public class AttendanceEventEntity implements Persistable<UUID> {
         event.occurredAt = occurredAt;
         event.receivedAt = receivedAt;
         event.gateOutcome = gateOutcome;
-        event.reviewFlag = mode == EventMode.OFFLINE;   // every offline event is reviewed (E6)
+        event.reviewFlag = reviewFlag;
         event.newEntity = true;
         return event;
     }

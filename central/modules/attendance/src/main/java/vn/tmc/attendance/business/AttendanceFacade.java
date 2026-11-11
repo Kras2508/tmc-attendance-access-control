@@ -1,7 +1,8 @@
 package vn.tmc.attendance.business;
 
 import org.springframework.stereotype.Component;
-import vn.tmc.attendance.api.AttendanceApi;
+import vn.tmc.attendance.api.AttendanceQueryApi;
+import vn.tmc.attendance.api.AttendanceRecordingApi;
 import vn.tmc.attendance.api.dto.AttendanceRecord;
 import vn.tmc.attendance.api.dto.RecordAttendanceCommand;
 import vn.tmc.attendance.business.service.AttendanceQueryService;
@@ -16,11 +17,8 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Entry point of the Attendance module; implements AttendanceApi (Table 9). Contains no logic: it only delegates.
- */
 @Component
-public class AttendanceFacade implements AttendanceApi {
+public class AttendanceFacade implements AttendanceRecordingApi, AttendanceQueryApi {
 
     private final AttendanceRecordingService recordingService;
     private final AttendanceQueryService queryService;

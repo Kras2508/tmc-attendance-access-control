@@ -4,7 +4,7 @@ Tài liệu này dành cho các thành viên trong nhóm. README mô tả kiến
 
 ## 1. Quy tắc bắt buộc (vi phạm thì `./mvnw verify` sẽ fail)
 
-1. **Chỉ gọi module khác qua `api`.** Ví dụ Gate Access muốn ghi attendance thì gọi `AttendanceApi`, **không** import `AttendanceRecordingService` hay `AttendanceEventRepository`.
+1. **Chỉ gọi module khác qua `api`.** Ví dụ Gate Access muốn ghi attendance thì gọi `AttendanceRecordingApi`, **không** import `AttendanceRecordingService` hay `AttendanceEventRepository`.
 2. **Mỗi module chỉ đọc/ghi schema của mình.** Bảng mới thì đặt migration trong `src/main/resources/db/migration/<schema>/` của chính module đó, đánh số theo dải của module (audit `V1xx`, access_management `V2xx`, identity_qr `V3xx`, gate_access `V4xx`, attendance `V5xx`, reporting_export `V6xx`). Không tạo foreign key sang schema khác.
 3. **Không tạo dependency vòng.** Không module nào được phụ thuộc vào `reporting-export` hay `adapter`. Nếu cần thêm dependency giữa các module thì phải sửa `pom.xml`, và sửa `pom.xml` là thay đổi kiến trúc: phải thống nhất trong nhóm và cập nhật report (Figure 1).
 4. **Phân lớp đóng:** `presentation → business → persistence`. Controller chỉ gọi `*Facade`, không gọi thẳng service hay repository.
