@@ -122,7 +122,7 @@ Deviations, each taken directly from the report:
 |---|---|---|---|---|
 | Identity & QR | `central/modules/identity-qr` | `vn.tmc.identityqr` | `IdentityQrApi` | `QrDeliveryPort` |
 | Gate Access | `central/modules/gate-access` | `vn.tmc.gateaccess` | `GateStatusApi` (§8.1.5) | `TurnstilePort`, `SecurityAlertPort` |
-| Attendance | `central/modules/attendance` | `vn.tmc.attendance` | `AttendanceApi` | — |
+| Attendance | `central/modules/attendance` | `vn.tmc.attendance` | `AttendanceRecordingApi`, `AttendanceQueryApi` | — |
 | Reporting & Export | `central/modules/reporting-export` | `vn.tmc.reportingexport` | *none* | `PayrollExportPort` |
 | Access Management | `central/modules/access-management` | `vn.tmc.accessmanagement` | `AuthorizationApi` | — |
 | Audit | `central/modules/audit` | `vn.tmc.audit` | `AuditApi` | — |
@@ -220,7 +220,7 @@ There are no foreign keys between schemas; references across modules are logical
 | **S**RP | one module per business capability; one focused service per responsibility (`business/service/*`); one class per token check (`check/*Check`) |
 | **O**CP | new external system → new adapter; new validation rule → new `TokenCheck`; new export step → new `ExportFilter`; new kiosk state → new `KioskState` |
 | **L**SP | `HttpTurnstileAdapter` ↔ `MockTurnstileAdapter` (same `TurnstilePort` contract); `DbNonceRepository` ↔ `LocalNonceStore`; `DbCredentialStatusSource` ↔ `LocalCache` |
-| **I**SP | small public interfaces per capability (`IdentityQrApi`, `AttendanceApi`, `AuthorizationApi`, `AuditApi`, `GateStatusApi`); small SPIs in `qr-token-lib/spi` |
+| **I**SP | small public interfaces per capability (`IdentityQrApi`, `AttendanceRecordingApi`, `AttendanceQueryApi`, `AuthorizationApi`, `AuditApi`, `GateStatusApi`); small SPIs in `qr-token-lib/spi` |
 | **D**IP | services depend on `api` interfaces and ports, injected through the constructor; `Clock` and `UnitOfWork` are abstractions in the shared kernel; adapters depend on ports, not the other way round |
 
 ---

@@ -3,6 +3,7 @@ package vn.tmc.attendance.business.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.tmc.attendance.api.dto.RecordAttendanceCommand;
+import vn.tmc.attendance.business.policy.ReviewPolicy;
 import vn.tmc.attendance.persistence.entity.AttendanceEventEntity;
 import vn.tmc.attendance.persistence.repository.AttendanceEventRepository;
 import vn.tmc.shared.id.EventId;
@@ -17,10 +18,12 @@ public class AttendanceRecordingService {
 
     private final AttendanceEventRepository repository;
     private final Clock clock;
+    private final ReviewPolicy reviewPolicy;
 
-    public AttendanceRecordingService(AttendanceEventRepository repository, Clock clock) {
+    public AttendanceRecordingService(AttendanceEventRepository repository, Clock clock, ReviewPolicy reviewPolicy) {
         this.repository = repository;
         this.clock = clock;
+        this.reviewPolicy = reviewPolicy;
     }
 
     @Transactional
@@ -38,7 +41,8 @@ public class AttendanceRecordingService {
                 command.mode(),
                 command.occurredAt(),
                 clock.now(),
-                command.gateOutcome()));
+                command.gateOutcome(),
+                reviewPolicy.requiresReview(command)));
         return RecordResult.ACCEPTED;
     }
 

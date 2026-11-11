@@ -1,12 +1,12 @@
 package vn.tmc.attendance.business.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import vn.tmc.attendance.api.dto.RecordAttendanceCommand;
+import vn.tmc.attendance.business.policy.ReviewPolicy;
 import vn.tmc.attendance.persistence.entity.AttendanceEventEntity;
 import vn.tmc.attendance.persistence.repository.AttendanceEventRepository;
 import vn.tmc.shared.id.EventId;
@@ -30,54 +30,46 @@ class AttendanceRecordingServiceTest {
 
     private static final Instant NOW = Instant.parse("2026-11-09T00:30:00Z");
     private static final Instant SCANNED_AT = Instant.parse("2026-11-09T00:29:58Z");
+    private static final ReviewPolicy NEVER_REVIEW = command -> false;
+    private static final ReviewPolicy ALWAYS_REVIEW = command -> true;
 
     @Mock
     private AttendanceEventRepository repository;
 
-    private AttendanceRecordingService service;
-
-    @BeforeEach
-    void setUp() {
-        service = new AttendanceRecordingService(repository, () -> NOW);
-    }
-
     @Test
     void recordsANewEvent() {
-        RecordAttendanceCommand command = command(EventMode.ONLINE);
+        RecordAttendanceCommand command = command();
         when(repository.existsById(command.eventId().value())).thenReturn(false);
 
-        RecordResult result = service.record(command);
+        RecordResult result = service(NEVER_REVIEW).record(command);
 
         assertThat(result).isEqualTo(RecordResult.ACCEPTED);
-        ArgumentCaptor<AttendanceEventEntity> saved = ArgumentCaptor.forClass(AttendanceEventEntity.class);
-        verify(repository).save(saved.capture());
-        assertThat(saved.getValue().getId()).isEqualTo(command.eventId().value());
-        assertThat(saved.getValue().getOccurredAt()).isEqualTo(SCANNED_AT);
-        assertThat(saved.getValue().getReceivedAt()).isEqualTo(NOW);
-        assertThat(saved.getValue().isReviewFlag()).isFalse();
+        AttendanceEventEntity saved = savedEvent();
+        assertThat(saved.getId()).isEqualTo(command.eventId().value());
+        assertThat(saved.getOccurredAt()).isEqualTo(SCANNED_AT);
+        assertThat(saved.getReceivedAt()).isEqualTo(NOW);
+        assertThat(saved.isReviewFlag()).isFalse();
     }
 
     @Test
     void sameEventDeliveredTwiceIsStoredOnce() {
-        RecordAttendanceCommand command = command(EventMode.ONLINE);
+        RecordAttendanceCommand command = command();
         when(repository.existsById(command.eventId().value())).thenReturn(true);
 
-        RecordResult result = service.record(command);
+        RecordResult result = service(NEVER_REVIEW).record(command);
 
         assertThat(result).isEqualTo(RecordResult.DUPLICATE);
         verify(repository, never()).save(any());
     }
 
     @Test
-    void offlineEventIsFlaggedForReview() {
-        RecordAttendanceCommand command = command(EventMode.OFFLINE);
+    void storesTheDecisionOfTheReviewPolicy() {
+        RecordAttendanceCommand command = command();
         when(repository.existsById(command.eventId().value())).thenReturn(false);
 
-        service.record(command);
+        service(ALWAYS_REVIEW).record(command);
 
-        ArgumentCaptor<AttendanceEventEntity> saved = ArgumentCaptor.forClass(AttendanceEventEntity.class);
-        verify(repository).save(saved.capture());
-        assertThat(saved.getValue().isReviewFlag()).isTrue();
+        assertThat(savedEvent().isReviewFlag()).isTrue();
     }
 
     @Test
@@ -85,12 +77,22 @@ class AttendanceRecordingServiceTest {
         EventId unknown = EventId.random();
         when(repository.findById(unknown.value())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.updateGateOutcome(unknown, GateOutcome.NOT_OPENED))
+        assertThatThrownBy(() -> service(NEVER_REVIEW).updateGateOutcome(unknown, GateOutcome.NOT_OPENED))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-    private static RecordAttendanceCommand command(EventMode mode) {
+    private AttendanceRecordingService service(ReviewPolicy reviewPolicy) {
+        return new AttendanceRecordingService(repository, () -> NOW, reviewPolicy);
+    }
+
+    private AttendanceEventEntity savedEvent() {
+        ArgumentCaptor<AttendanceEventEntity> saved = ArgumentCaptor.forClass(AttendanceEventEntity.class);
+        verify(repository).save(saved.capture());
+        return saved.getValue();
+    }
+
+    private static RecordAttendanceCommand command() {
         return new RecordAttendanceCommand(EventId.random(), "E0001", "BD-G01", "BD",
-                Direction.ENTRY, mode, SCANNED_AT, GateOutcome.PENDING);
+                Direction.ENTRY, EventMode.ONLINE, SCANNED_AT, GateOutcome.PENDING);
     }
 }
